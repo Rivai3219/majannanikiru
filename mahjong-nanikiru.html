@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>麻雀何切る問題</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .problem-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #007bff;
+        }
+
+        .hand {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 15px;
+        }
+
+        .tile {
+            width: 80px;
+            height: 100px;
+            background: linear-gradient(145deg, #f8f8f8, #e0e0e0);
+            border: 3px solid #2c2c2c;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+            position: relative;
+            box-shadow: 
+                inset 2px 2px 4px rgba(255,255,255,0.8),
+                inset -2px -2px 4px rgba(0,0,0,0.1),
+                2px 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .tile:hover {
+            transform: translateY(-8px);
+            box-shadow: 
+                inset 2px 2px 4px rgba(255,255,255,0.9),
+                inset -2px -2px 4px rgba(0,0,0,0.15),
+                0 12px 25px rgba(0,0,0,0.3);
+        }
+
+        .tile.selected {
+            background: linear-gradient(145deg, #ffcdd2, #f8bbd9);
+            transform: translateY(-12px);
+            box-shadow: 
+                inset 2px 2px 4px rgba(255,255,255,0.9),
+                inset -2px -2px 4px rgba(0,0,0,0.2),
+                0 15px 30px rgba(255,107,107,0.5);
+        }
+
+        /* 萬子 Unicode文字 */
+        .man.tile-1m::after { content: "🀇"; }
+        .man.tile-2m::after { content: "🀈"; }
+        .man.tile-3m::after { content: "🀉"; }
+        .man.tile-4m::after { content: "🀊"; }
+        .man.tile-5m::after { content: "🀋"; }
+        .man.tile-6m::after { content: "🀌"; }
+        .man.tile-7m::after { content: "🀍"; }
+        .man.tile-8m::after { content: "🀎"; }
+        .man.tile-9m::after { content: "🀏"; }
+
+        /* 筒子 Unicode文字 */
+        .pin.tile-1p::after { content: "🀙"; }
+        .pin.tile-2p::after { content: "🀚"; }
+        .pin.tile-3p::after { content: "🀛"; }
+        .pin.tile-4p::after { content: "🀜"; }
+        .pin.tile-5p::after { content: "🀝"; }
+        .pin.tile-6p::after { content: "🀞"; }
+        .pin.tile-7p::after { content: "🀟"; }
+        .pin.tile-8p::after { content: "🀠"; }
+        .pin.tile-9p::after { content: "🀡"; }
+
+        /* 索子 Unicode文字 */
+        .sou.tile-1s::after { content: "🀐"; }
+        .sou.tile-2s::after { content: "🀑"; }
+        .sou.tile-3s::after { content: "🀒"; }
+        .sou.tile-4s::after { content: "🀓"; }
+        .sou.tile-5s::after { content: "🀔"; }
+        .sou.tile-6s::after { content: "🀕"; }
+        .sou.tile-7s::after { content: "🀖"; }
+        .sou.tile-8s::after { content: "🀗"; }
+        .sou.tile-9s::after { content: "🀘"; }
+
+        /* 字牌 Unicode文字 */
+        .honor.tile-東::after { content: "🀀"; }
+        .honor.tile-南::after { content: "🀁"; }
+        .honor.tile-西::after { content: "🀂"; }
+        .honor.tile-北::after { content: "🀃"; }
+        .honor.tile-白::after { content: "🀆"; }
+        .honor.tile-發::after { content: "🀅"; }
+        .honor.tile-中::after { content: "🀄"; }
+
+        .problem-info {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .answer-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: #fff3e0;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .answer-section.show {
+            display: block;
+        }
+
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+
+        .button:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .next-button {
+            background: #28a745;
+        }
+
+        .next-button:hover {
+            background: #1e7e34;
+        }
+
+        .score {
+            text-align: center;
+            font-size: 24px;
+            color: #333;
+            margin: 20px 0;
+        }
+
+        .result-display {
+            text-align: center;
+            font-size: 60px;
+            margin: 20px 0;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .correct-mark {
+            color: #e53e3e;
+            font-weight: bold;
+            animation: bounceIn 0.6s ease;
+        }
+
+        .incorrect-mark {
+            color: #3182ce;
+            font-weight: bold;
+            animation: bounceIn 0.6s ease;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .title-screen {
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .title-illustration {
+            font-size: 120px;
+            margin-bottom: 20px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-15px); }
+            60% { transform: translateY(-7px); }
+        }
+
+        .title-screen h1 {
+            font-size: 3.5em;
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, #667eea, #764ba2, #667eea);
+            background-size: 300% 300%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientMove 3s ease-in-out infinite;
+        }
+
+        @keyframes gradientMove {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .title-description {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .start-button {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .start-button:hover {
+            background: linear-gradient(45deg, #218838, #1ea085);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(40, 167, 69, 0.4);
+        }
+
+        .game-screen {
+            display: none;
+        }
+
+        .result-screen {
+            display: none;
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .result-screen h1 {
+            font-size: 3em;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .final-score {
+            font-size: 4em;
+            font-weight: bold;
+            margin: 30px 0;
+            background: linear-gradient(45deg, #ff6b6b, #feca57, #ff6b6b);
+            background-size: 300% 300%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientMove 2s ease-in-out infinite;
+        }
+
+        .result-message {
+            font-size: 1.5em;
+            color: #666;
+            margin: 30px 0;
+            line-height: 1.6;
+        }
+
+        .result-emoji {
+            font-size: 100px;
+            margin: 20px 0;
+            animation: bounce 1.5s ease-in-out infinite;
+        }
+
+        .restart-button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 18px;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .restart-button:hover {
+            background: linear-gradient(45deg, #5a67d8, #6b46c1);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title-screen" id="title-screen">
+            <div class="title-illustration">🐱🀄🎯</div>
+            <h1>麻雀何切る問題</h1>
+            <div class="title-description">
+                <p>麻雀の何切る問題に挑戦しましょう！</p>
+                <p>手牌から最適な牌を選んで捨ててください。</p>
+                <p>全9問の問題があります。</p>
+            </div>
+            <button class="start-button" onclick="startGame()">ゲーム開始</button>
+        </div>
+
+        <div class="result-screen" id="result-screen">
+            <h1>お疲れ様でした！</h1>
+            <div class="result-emoji" id="result-emoji">🎉</div>
+            <div class="final-score" id="final-score">0 / 9</div>
+            <div class="result-message" id="result-message">素晴らしい結果です！</div>
+            <div>
+                <button class="restart-button" onclick="restartGame()">もう一度挑戦</button>
+                <button class="restart-button" onclick="backToTitle()">タイトルに戻る</button>
+            </div>
+        </div>
+
+        <div class="game-screen" id="game-screen">
+            <h1>麻雀何切る問題</h1>
+            <div class="result-display" id="result-display"></div>
+            
+            <div id="problem-container">
+                <div class="problem-section">
+                    <h3 id="problem-title">問題 1</h3>
+                    <div class="problem-info">
+                        <p id="problem-description">以下の手牌から何を切りますか？</p>
+                        <p id="problem-context"></p>
+                    </div>
+                    
+                    <div class="hand" id="hand">
+                    </div>
+                    
+                    <div>
+                        <button class="button" onclick="showAnswer()">答えを見る</button>
+                        <button class="button next-button" onclick="nextProblem()">次の問題</button>
+                    </div>
+                    
+                    <div class="answer-section" id="answer">
+                        <h4>正解と解説</h4>
+                        <p id="correct-answer"></p>
+                        <p id="explanation"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentProblem = 0;
+        let correctAnswers = 0;
+        let totalProblems = 0;
+        let selectedTile = null;
+
+        const problems = [
+            {
+                hand: [
+                    {tile: '1m', type: 'man'}, {tile: '1m', type: 'man'}, {tile: '2m', type: 'man'},
+                    {tile: '6m', type: 'man'}, {tile: '8m', type: 'man'}, 
+                    {tile: '4p', type: 'pin'}, {tile: '5p', type: 'pin'}, {tile: '8p', type: 'pin'}, {tile: '9p', type: 'pin'},
+                    {tile: '1s', type: 'sou'}, {tile: '3s', type: 'sou'}, {tile: '3s', type: 'sou'},
+                    {tile: '5s', type: 'sou'}, {tile: '6s', type: 'sou'}
+                ],
+                context: "ドラ: 5s",
+                correctAnswer: '9p',
+                explanation: "9pは孤立した端牌で活用しにくく、他の部分の方が発展性があります。萬子は対子と搭子があり、筒子は45の搭子、索子はドラの3s対子と良い形があります。"
+            },
+            {
+                hand: [
+                    {tile: '1m', type: 'man'}, {tile: '2m', type: 'man'}, {tile: '3m', type: 'man'},
+                    {tile: '6m', type: 'man'}, {tile: '7m', type: 'man'}, {tile: '8m', type: 'man'},
+                    {tile: '3p', type: 'pin'}, {tile: '3p', type: 'pin'}, {tile: '4p', type: 'pin'},
+                    {tile: '3s', type: 'sou'}, {tile: '3s', type: 'sou'}, {tile: '4s', type: 'sou'},
+                    {tile: '7s', type: 'sou'}, {tile: '8s', type: 'sou'}
+                ],
+                context: "聴牌まで1枚、ドラ: 4p",
+                correctAnswer: '4p',
+                explanation: "4pを切ることで3pの暗刻を維持し、3sの対子からの発展を期待できます。78sの搭子も残り、総合的な待ちが良くなります。"
+            },
+            {
+                hand: [
+                    {tile: '1m', type: 'man'}, {tile: '2m', type: 'man'}, {tile: '3m', type: 'man'},
+                    {tile: '4m', type: 'man'}, {tile: '5m', type: 'man'}, {tile: '6m', type: 'man'},
+                    {tile: '7m', type: 'man'}, {tile: '8m', type: 'man'}, {tile: '9m', type: 'man'},
+                    {tile: '1p', type: 'pin'}, {tile: '1p', type: 'pin'}, {tile: '2p', type: 'pin'},
+                    {tile: '3p', type: 'pin'}, {tile: '中', type: 'honor'}
+                ],
+                context: "東1局、親番、ドラ: 5s",
+                correctAnswer: '中',
+                explanation: "中は孤立した字牌で使い道がありません。萬子は一通の可能性があり、筒子も面子候補として価値があります。"
+            },
+            {
+                hand: [
+                    {tile: '2m', type: 'man'}, {tile: '2m', type: 'man'}, {tile: '4m', type: 'man'},
+                    {tile: '3p', type: 'pin'}, {tile: '3p', type: 'pin'}, {tile: '4p', type: 'pin'}, {tile: '7p', type: 'pin'}, {tile: '8p', type: 'pin'}, {tile: '9p', type: 'pin'},
+                    {tile: '1s', type: 'sou'}, {tile: '1s', type: 'sou'}, {tile: '4s', type: 'sou'}, {tile: '6s', type: 'sou'}, {tile: '8s', type: 'sou'}
+                ],
+                context: "ドラ: 9s",
+                correctAnswer: '3p',
+                explanation: "3pの対子を切ることで手牌の形を整えます。筒子は789の順子があり、2mの対子と1sの対子を残すことで発展性を保てます。"
+            },
+            {
+                hand: [
+                    {tile: '2m', type: 'man'}, {tile: '2m', type: 'man'}, {tile: '7m', type: 'man'}, {tile: '8m', type: 'man'}, {tile: '9m', type: 'man'},
+                    {tile: '4p', type: 'pin'}, {tile: '4p', type: 'pin'}, {tile: '6p', type: 'pin'}, {tile: '6p', type: 'pin'}, {tile: '8p', type: 'pin'}, {tile: '8p', type: 'pin'},
+                    {tile: '1s', type: 'sou'}, {tile: '2s', type: 'sou'}, {tile: '3s', type: 'sou'}
+                ],
+                context: "ドラ: 8m",
+                correctAnswer: '2m',
+                explanation: "2mの対子を切って手牌を整理します。ドラの8mを含む789の順子と、筒子の対子2組、索子の123順子を活かす方針です。"
+            },
+            {
+                hand: [
+                    {tile: '5m', type: 'man'}, {tile: '6m', type: 'man'}, {tile: '7m', type: 'man'}, {tile: '8m', type: 'man'}, {tile: '9m', type: 'man'},
+                    {tile: '2p', type: 'pin'}, {tile: '3p', type: 'pin'}, {tile: '3p', type: 'pin'}, {tile: '4p', type: 'pin'},
+                    {tile: '3s', type: 'sou'}, {tile: '4s', type: 'sou'}, {tile: '5s', type: 'sou'}, {tile: '5s', type: 'sou'}, {tile: '6s', type: 'sou'}
+                ],
+                context: "ドラ: 8m",
+                correctAnswer: '3p',
+                explanation: "3pの対子を切ることで24pの搭子を残し、より良い形に向かいます。萬子の順子と索子の良形があるため、筒子部分を整理します。"
+            },
+            {
+                hand: [
+                    {tile: '2m', type: 'man'}, {tile: '3m', type: 'man'}, {tile: '4m', type: 'man'},
+                    {tile: '5m', type: 'man'}, {tile: '6m', type: 'man'}, {tile: '7m', type: 'man'},
+                    {tile: '2p', type: 'pin'}, {tile: '3p', type: 'pin'}, {tile: '4p', type: 'pin'},
+                    {tile: '6s', type: 'sou'}, {tile: '7s', type: 'sou'}, {tile: '8s', type: 'sou'},
+                    {tile: '東', type: 'honor'}, {tile: '東', type: 'honor'}
+                ],
+                context: "東1局、親番、ドラ: 1m",
+                correctAnswer: '東',
+                explanation: "東の対子は価値が低く、他の部分が完成しているため東を切って聴牌を狙います。"
+            },
+            {
+                hand: [
+                    {tile: '1m', type: 'man'}, {tile: '1m', type: 'man'}, {tile: '2m', type: 'man'}, {tile: '6m', type: 'man'}, {tile: '8m', type: 'man'},
+                    {tile: '5p', type: 'pin'}, {tile: '6p', type: 'pin'}, {tile: '6p', type: 'pin'}, {tile: '8p', type: 'pin'},
+                    {tile: '1s', type: 'sou'}, {tile: '3s', type: 'sou'}, {tile: '3s', type: 'sou'}, {tile: '5s', type: 'sou'}, {tile: '6s', type: 'sou'}
+                ],
+                context: "ドラ: 中",
+                correctAnswer: '8p',
+                explanation: "8pは孤立した中張牌で活用が困難です。1mの対子、6pの対子、3sの対子があり、56pの搭子と56sの搭子を残して発展を狙います。"
+            },
+            {
+                hand: [
+                    {tile: '1m', type: 'man'}, {tile: '9m', type: 'man'}, 
+                    {tile: '2p', type: 'pin'}, {tile: '3p', type: 'pin'}, {tile: '4p', type: 'pin'},
+                    {tile: '5p', type: 'pin'}, {tile: '6p', type: 'pin'}, {tile: '7p', type: 'pin'},
+                    {tile: '3s', type: 'sou'}, {tile: '4s', type: 'sou'}, {tile: '5s', type: 'sou'},
+                    {tile: '白', type: 'honor'}, {tile: '白', type: 'honor'}, {tile: '白', type: 'honor'}
+                ],
+                context: "東2局、子番、ドラ: 8p",
+                correctAnswer: '1m',
+                explanation: "1mは孤立した端牌で最も使い道がありません。9mも同様ですが、どちらを切っても大差ありません。"
+            }
+        ];
+
+        function displayProblem() {
+            const problem = problems[currentProblem];
+            document.getElementById('problem-title').textContent = `問題 ${currentProblem + 1}`;
+            document.getElementById('problem-context').textContent = problem.context;
+            
+            const handContainer = document.getElementById('hand');
+            handContainer.innerHTML = '';
+            
+            problem.hand.forEach((tileData, index) => {
+                const tile = document.createElement('div');
+                tile.className = `tile ${tileData.type} tile-${tileData.tile}`;
+                tile.onclick = () => selectTile(tile, tileData.tile);
+                handContainer.appendChild(tile);
+            });
+
+            document.getElementById('answer').classList.remove('show');
+            selectedTile = null;
+        }
+
+        function selectTile(element, tile) {
+            document.querySelectorAll('.tile').forEach(t => t.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedTile = tile;
+        }
+
+        function showAnswer() {
+            const problem = problems[currentProblem];
+            document.getElementById('correct-answer').textContent = `正解: ${problem.correctAnswer}`;
+            document.getElementById('explanation').textContent = problem.explanation;
+            document.getElementById('answer').classList.add('show');
+            
+            const resultDisplay = document.getElementById('result-display');
+            
+            totalProblems++;
+            if (selectedTile === problem.correctAnswer) {
+                correctAnswers++;
+                resultDisplay.innerHTML = '<span class="correct-mark">⭕</span>';
+            } else {
+                resultDisplay.innerHTML = '<span class="incorrect-mark">❌</span>';
+            }
+            
+            updateScore();
+        }
+
+        function nextProblem() {
+            currentProblem++;
+            if (currentProblem >= problems.length) {
+                showFinalResult();
+            } else {
+                document.getElementById('result-display').innerHTML = '';
+                displayProblem();
+            }
+        }
+
+        function updateScore() {
+            // スコア表示は最終結果でのみ行う
+        }
+
+        function startGame() {
+            document.getElementById('title-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            document.getElementById('result-screen').style.display = 'none';
+            displayProblem();
+        }
+
+        function showFinalResult() {
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+            
+            document.getElementById('final-score').textContent = `${correctAnswers} / ${problems.length}`;
+            
+            let emoji, message;
+            const percentage = (correctAnswers / problems.length) * 100;
+            
+            if (percentage === 100) {
+                emoji = '🏆';
+                message = '完璧です！麻雀マスターですね！';
+            } else if (percentage >= 80) {
+                emoji = '🎉';
+                message = '素晴らしい成績です！とても上手ですね！';
+            } else if (percentage >= 60) {
+                emoji = '👏';
+                message = '良い結果です！もう少しで上級者です！';
+            } else if (percentage >= 40) {
+                emoji = '😊';
+                message = 'まずまずの結果です！練習を続けましょう！';
+            } else {
+                emoji = '💪';
+                message = '頑張りました！次はもっと良い結果を目指しましょう！';
+            }
+            
+            document.getElementById('result-emoji').textContent = emoji;
+            document.getElementById('result-message').textContent = message;
+        }
+
+        function restartGame() {
+            currentProblem = 0;
+            correctAnswers = 0;
+            totalProblems = 0;
+            selectedTile = null;
+            
+            document.getElementById('result-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            
+            displayProblem();
+        }
+
+        function backToTitle() {
+            currentProblem = 0;
+            correctAnswers = 0;
+            totalProblems = 0;
+            selectedTile = null;
+            
+            document.getElementById('result-screen').style.display = 'none';
+            document.getElementById('title-screen').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
